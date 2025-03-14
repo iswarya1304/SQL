@@ -56,34 +56,37 @@ select e.EMPLOYEE_ID,p.project_name
 FROM employees e
 LEFT JOIN projects p ON e.employee_id = p.employee_id;
 WHERE PROJECT_ID IS NULL;
-
 -- 12. Retrieve project names along with the department handling them using INNER JOIN
+SELECT p.project_name, d.department_name
+FROM hr.projects p
+INNER JOIN hr.departments d ON p.department_id = d.department_id;
+
+-- 13. Retrieve employees along with the names of their training programs using INNER JOIN
+SELECT e.employee_id, e.employee_name, t.training_name
+FROM employees e
+INNER JOIN training_programs t ON e.training_id = t.training_id;
+
+-- 14. Retrieve employees who have not attended any training programs using LEFT JOIN
+SELECT e.employee_id, e.employee_name
+FROM employees e
+LEFT JOIN training_programs t ON e.training_id = t.training_id
+WHERE t.training_id IS NULL;
+
+-- 15. Retrieve employee names and their assigned shifts using INNER JOIN
+SELECT e.employee_id, e.employee_name, s.shift_timing
+FROM employees e
+INNER JOIN shifts s ON e.shift_id = s.shift_id;
+
+-- 16. Retrieve employees who do not have an assigned shift using LEFT JOIN
+SELECT e.employee_id, e.employee_name
+FROM employees e
+LEFT JOIN shifts s ON e.shift_id = s.shift_id
+WHERE s.shift_id IS NULL;
+
+-- 17. Retrieve employees, their department names, and their assigned project names using multiple INNER JOINs
+SELECT e.employee_id, e.employee_name, d.department_name, p.project_name
+FROM employees e
+INNER JOIN departments d ON e.department_id = d.department_id
+INNER JOIN projects p ON e.employee_id = p.employee_id;
 
 
-
-0
-select * from hr.employees;
-select * from hr.DEPARTMENTS;
-
-SELECT
-    DEPARTMENT_ID,
-    DEPARTMENT_NAME,
-    MANAGER_ID,
-    LOCATION_ID
-FROM
-    HR.DEPARTMENTS;
-
-SELECT
-    EMPLOYEE_ID,
-    FIRST_NAME,
-    LAST_NAME,
-    EMAIL,
-    PHONE_NUMBER,
-    HIRE_DATE,
-    JOB_ID,
-    SALARY,
-    COMMISSION_PCT,
-    MANAGER_ID,
-    DEPARTMENT_ID
-FROM
-    HR.EMPLOYEES;
