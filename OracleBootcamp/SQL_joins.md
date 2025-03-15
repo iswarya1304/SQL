@@ -89,4 +89,84 @@ FROM employees e
 INNER JOIN departments d ON e.department_id = d.department_id
 INNER JOIN projects p ON e.employee_id = p.employee_id;
 
+-- 18. Retrieve employees who have worked on more than one project using INNER JOIN and GROUP BY
+SELECT e.employee_id, e.employee_name, COUNT(p.project_id) AS project_count
+FROM employees e
+INNER JOIN projects p ON e.employee_id = p.employee_id
+GROUP BY e.employee_id, e.employee_name
+HAVING COUNT(p.project_id) > 1;
+
+-- 19. Retrieve employees along with their salaries and their department budget using INNER JOIN
+SELECT e.employee_id, e.employee_name, e.salary, d.budget
+FROM employees e
+INNER JOIN departments d ON e.department_id = d.department_id;
+
+-- 20. Retrieve employees who earn more than their department’s average salary using INNER JOIN and a subquery
+SELECT e.employee_id, e.employee_name, e.salary
+FROM hr.employees e
+INNER JOIN hr.departments d ON e.department_id = d.department_id
+WHERE e.salary > (SELECT AVG(salary) FROM employees WHERE department_id = e.department_id);
+
+-- 21. Retrieve employees who have the same job role as another employee using SELF JOIN
+SELECT e1.employee_id, e1.employee_name, e2.employee_name AS coworker_name, e1.job_id
+FROM employees e1
+INNER JOIN employees e2 ON e1.job_id = e2.job_id AND e1.employee_id <> e2.employee_id;
+
+-- 22. Retrieve employees and their department names, but show "Not Assigned" if an employee has no department using LEFT JOIN and COALESCE
+select e.EMPLOYEE_ID, e.FIRST_NAME, COALESCE(d.DEPARTMENT_NAME, 'Not Assigned') as depatment_name
+from hr.employees e
+left join hr.departments d on e.department_id=d.department_id;
+
+-- 23. Retrieve employees and their assigned projects, including employees who are not assigned to any project using FULL OUTER JOIN
+SELECT e.employee_id, e.employee_name, p.project_name
+FROM employees e
+FULL OUTER JOIN projects p ON e.employee_id = p.employee_id;
+
+-- 24. Retrieve employees who work in a city where their department is located using INNER JOIN
+select e.EMPLOYEE_ID, l.city
+from hr.employees e 
+inner join hr.departments d on e.department_id = d.department_id
+inner join hr.locations l on l.location_id =d.location_id;
+
+-- 25. Retrieve employees and their total bonus amount using INNER JOIN with a bonus table
+SELECT e.employee_id, e.employee_name, SUM(b.bonus_amount) AS total_bonus
+FROM employees e
+INNER JOIN bonuses b ON e.employee_id = b.employee_id
+GROUP BY e.employee_id, e.employee_name;
+
+-- 26. Retrieve employees who do not have any recorded bonuses using LEFT JOIN
+SELECT e.employee_id, e.employee_name
+FROM employees e
+LEFT JOIN bonuses b ON e.employee_id = b.employee_id
+WHERE b.bonus_amount IS NULL;
+
+-- 27. Retrieve employees and their department names where employees belong to a specific region using INNER JOIN
+SELECT e.employee_id, e.employee_name, d.department_name, r.region_name
+FROM employees e
+INNER JOIN departments d ON e.department_id = d.department_id
+INNER JOIN locations l ON d.location_id = l.location_id
+INNER JOIN regions r ON l.region_id = r.region_id;
+
+-- 28. Retrieve employees and their project details, even if they are not assigned to a project using LEFT JOIN
+SELECT e.employee_id, e.employee_name, p.project_name
+FROM employees e
+LEFT JOIN projects p ON e.employee_id = p.employee_id;
+
+-- 29. Retrieve departments and the count of employees in each department using INNER JOIN and GROUP BY
+SELECT d.department_id, d.department_name, COUNT(e.employee_id) AS employee_count
+FROM departments d
+LEFT JOIN employees e ON d.department_id = e.department_id
+GROUP BY d.department_id, d.department_name;
+
+-- 30. Retrieve employees who work on projects located in a different city than their department using INNER JOIN
+SELECT e.employee_id, e.employee_name, d.department_name, p.project_name, l.city AS project_city
+FROM employees e
+INNER JOIN projects p ON e.employee_id = p.employee_id
+INNER JOIN departments d ON e.department_id = d.department_id
+INNER JOIN locations l ON p.location_id = l.location_id
+WHERE d.location_id <> p.location_id;
+
+
+
+
 
