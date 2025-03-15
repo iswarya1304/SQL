@@ -1,1 +1,154 @@
+-- 18. Retrieve employees who have worked on more than one project using INNER JOIN and GROUP BY
+SELECT e.employee_id, e.employee_name, COUNT(p.project_id) AS project_count
+FROM employees e
+INNER JOIN projects p ON e.employee_id = p.employee_id
+GROUP BY e.employee_id, e.employee_name
+HAVING COUNT(p.project_id) > 1;
+
+-- 19. Retrieve employees along with their salaries and their department budget using INNER JOIN
+SELECT e.employee_id, e.employee_name, e.salary, d.budget
+FROM employees e
+INNER JOIN departments d ON e.department_id = d.department_id;
+
+-- 20. Retrieve employees who earn more than their department’s average salary using INNER JOIN and a subquery
+SELECT e.employee_id, e.employee_name, e.salary
+FROM hr.employees e
+INNER JOIN hr.departments d ON e.department_id = d.department_id
+WHERE e.salary > (SELECT AVG(salary) FROM employees WHERE department_id = e.department_id);
+
+-- 21. Retrieve employees who have the same job role as another employee using SELF JOIN
+SELECT e1.employee_id, e1.employee_name, e2.employee_name AS coworker_name, e1.job_id
+FROM employees e1
+INNER JOIN employees e2 ON e1.job_id = e2.job_id AND e1.employee_id <> e2.employee_id;
+
+-- 22. Retrieve employees and their department names, but show "Not Assigned" if an employee has no department using LEFT JOIN and COALESCE
+select e.EMPLOYEE_ID, e.FIRST_NAME, COALESCE(d.DEPARTMENT_NAME, 'Not Assigned') as depatment_name
+from hr.employees e
+left join hr.departments d on e.department_id=d.department_id;
+
+-- 23. Retrieve employees and their assigned projects, including employees who are not assigned to any project using FULL OUTER JOIN
+SELECT e.employee_id, e.employee_name, p.project_name
+FROM employees e
+FULL OUTER JOIN projects p ON e.employee_id = p.employee_id;
+
+-- 24. Retrieve employees who work in a city where their department is located using INNER JOIN
+select e.EMPLOYEE_ID, l.city
+from hr.employees e 
+inner join hr.departments d on e.department_id = d.department_id
+inner join hr.locations l on l.location_id =d.location_id;
+
+-- 25. Retrieve employees and their total bonus amount using INNER JOIN with a bonus table
+SELECT e.employee_id, e.employee_name, SUM(b.bonus_amount) AS total_bonus
+FROM employees e
+INNER JOIN bonuses b ON e.employee_id = b.employee_id
+GROUP BY e.employee_id, e.employee_name;
+
+-- 26. Retrieve employees who do not have any recorded bonuses using LEFT JOIN
+SELECT e.employee_id, e.employee_name
+FROM employees e
+LEFT JOIN bonuses b ON e.employee_id = b.employee_id
+WHERE b.bonus_amount IS NULL;
+
+-- 27. Retrieve employees and their department names where employees belong to a specific region using INNER JOIN
+SELECT e.employee_id, e.employee_name, d.department_name, r.region_name
+FROM employees e
+INNER JOIN departments d ON e.department_id = d.department_id
+INNER JOIN locations l ON d.location_id = l.location_id
+INNER JOIN regions r ON l.region_id = r.region_id;
+
+-- 28. Retrieve employees and their project details, even if they are not assigned to a project using LEFT JOIN
+SELECT e.employee_id, e.employee_name, p.project_name
+FROM employees e
+LEFT JOIN projects p ON e.employee_id = p.employee_id;
+
+-- 29. Retrieve departments and the count of employees in each department using INNER JOIN and GROUP BY
+SELECT d.department_id, d.department_name, COUNT(e.employee_id) AS employee_count
+FROM departments d
+LEFT JOIN employees e ON d.department_id = e.department_id
+GROUP BY d.department_id, d.department_name;
+
+-- 30. Retrieve employees who work on projects located in a different city than their department using INNER JOIN
+SELECT e.employee_id, e.employee_name, d.department_name, p.project_name, l.city AS project_city
+FROM employees e
+INNER JOIN projects p ON e.employee_id = p.employee_id
+INNER JOIN departments d ON e.department_id = d.department_id
+INNER JOIN locations l ON p.location_id = l.location_id
+WHERE d.location_id <> p.location_id;
+
+
+
+ 
+  
+    
+-- 1. Find the department with the highest total salary.
+-- Summarizes total salaries per department and selects the highest one.
+SELECT department_id, SUM(salary) AS total_salary
+FROM hr.employees
+GROUP BY department_id
+ORDER BY total_salary DESC
+FETCH FIRST 1 ROW ONLY;
+
+-- 2. Find the number of employees hired in each year.
+-- Extracts year from hire_date and counts employees hired per year.
+SELECT 
+    EXTRACT(YEAR FROM hire_date) AS year, 
+    COUNT(*) AS total_employees
+FROM hr.employees
+GROUP BY year
+ORDER BY year;
+
+
+-- 6. Assign a rank to employees based on their salary within each department.
+-- Uses RANK() to assign ranks based on salary in each department.
+select department_id,salary,
+rank() over(PARTITION BY department_id order by salary desc) as rank_salry
+from hr.employees
+order by  rank_salry;
+
+
+-- 7. Find the top 3 highest-paid employees in each department.
+-- Uses RANK() to rank employees based on salary and filters top 3.
+SELECT department_id, employee_id, salary, salary_rank
+FROM (
+     SELECT department_id, employee_id, salary,
+           RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS salary_rank 
+    FROM hr.employees
+)
+WHERE salary_rank <= 3;
+
+-- 8. Identify the second highest salary in each department using DENSE_RANK().
+-- Uses DENSE_RANK() to identify employees with the second-highest salary per department.
+SELECT department_id, employee_id, salary, denserank 
+FROM (
+     SELECT department_id, employee_id, salary,
+            DENSE_RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS denserank
+    FROM hr.employees
+)
+WHERE denserank  = 2;
+
+-- 9. Compute the cumulative total salary of employees ordered by hire date.
+-- Uses SUM() OVER() to create a running total of salaries.
+SELECT employee_id, hire_date, salary, DEPARTMENT_ID,
+       SUM(salary) OVER (ORDER BY hire_date) AS cumulative_salary
+FROM hr.employees;
+
+-- 10. Assign a row number to each employee in each department.
+-- Uses ROW_NUMBER() to assign a unique row number per department.
+select EMPLOYEE_ID, DEPARTMENT_ID,
+row_number() over(partition by DEPARTMENT_ID order by DEPARTMENT_ID)as row_num
+from hr.employees;
+
+-- 11. Find the salary difference between each employee and the next highest-paid employee.
+-- Uses LEAD() to compare an employee's salary with the next highest.
+SELECT employee_id, salary, 
+       LEAD(salary) OVER (ORDER BY salary DESC) - salary AS salary_diff
+FROM hr.employees;
+
+-- 12. Calculate the previous month’s salary for each employee using LAG().
+-- Uses LAG() to get the previous salary entry for each employee.
+select EMPLOYEE_ID, salary, HIRE_DATE,
+lag(salary) over(partition by EMPLOYEE_ID order by HIRE_DATE)
+from employees;
+
+
 
